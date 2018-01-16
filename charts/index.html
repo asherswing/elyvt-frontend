@@ -21,6 +21,10 @@
     <canvas id="remainingTasks"></canvas>
   </div>
   <div id="myDiv">
+    Upcoming Tasks (2018)
+    <canvas id="upcomingTasks"></canvas>
+  </div>
+  <div id="myDiv">
     Number Of Tasks (Active or Completed)
     <canvas id="tasksAC"></canvas>
   </div>
@@ -79,6 +83,7 @@
       var chartUserRoles = document.getElementById("userRoles").getContext("2d");
       var chartNumberProjects = document.getElementById("numberProjects").getContext("2d");
       var chartRemainingTasks = document.getElementById("remainingTasks").getContext("2d");
+      var chartUpcomingTasks = document.getElementById("upcomingTasks").getContext("2d");
 
       $.getJSON("data/json/users.json", function(result){
         var res = result;
@@ -127,6 +132,9 @@
         var folder = {};
         var project = [];
         var countProject = [];
+        var upcomingTasks = [];
+        var defaultMonth = [0,0,0,0,0,0,0,0,0,0,0,0];
+        var year = new Date().getFullYear();
         totalTasks = res.length - 1;
 
         $.getJSON("data/json/folders.json", function(result){
@@ -150,10 +158,20 @@
               data: [project.length],
               backgroundColor: [randomRGBA()],
             }]
+          },
+          options: {
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         });
 
         res.forEach(value => {
+          var startDate = value.dates__start;
           if (value.status === "Active") {
             var data = getData(folder, "_id__$oid", value.parentFolderIds__$oid);
             if (data) {
@@ -170,6 +188,19 @@
                           } else {
                             countProject[data3['title']] += 1;
                           }
+                          
+                          if (startDate) {
+                            startDate = startDate.split("/");
+                            var month = startDate[1] - 1;
+                            if(startDate[2] == year) {
+                              if (typeof(upcomingTasks[data3['title']]) === "undefined") {
+                                upcomingTasks[data3['title']] = defaultMonth;
+                                upcomingTasks[data3['title']][month] = 1;
+                              } else {
+                                upcomingTasks[data3['title']][month] += 1;
+                              }
+                            }
+                          }
                         }
                       } else {
                         var data4 = getData(folder, "_id__$oid", data3.parentId);
@@ -180,6 +211,19 @@
                                 countProject[data4['title']] = 1;
                               } else {
                                 countProject[data4['title']] += 1;
+                              }
+                            }
+
+                            if (startDate) {
+                              startDate = startDate.split("/");
+                              var month = startDate[1] - 1;
+                              if(startDate[2] == year) {
+                                if (typeof(upcomingTasks[data4['title']]) === "undefined") {
+                                  upcomingTasks[data4['title']] = defaultMonth;
+                                  upcomingTasks[data4['title']][month] = 1;
+                                } else {
+                                  upcomingTasks[data4['title']][month] += 1;
+                                }
                               }
                             }
                           }
@@ -218,6 +262,24 @@
           }
         });
 
+        var datasets = [];
+
+        for(var name in countProject) {
+          datasets.push({
+            label: name,
+            data: upcomingTasks[name],
+            backgroundColor: randomRGBA(),
+          });
+        }
+
+        var upcomingTasks = new Chart(chartUpcomingTasks, {
+          type: 'bar',
+          data: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            datasets: datasets
+          }
+        });
+
         var labels = [];
         var data = [];
         var colors = [];
@@ -237,6 +299,15 @@
               data: data,
               backgroundColor: colors,
             }]
+          },
+          options: {
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         });
 
@@ -259,6 +330,15 @@
               data: data,
               backgroundColor: colors,
             }]
+          },
+          options: {
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         });
 
@@ -302,6 +382,15 @@
                 "rgba(0,255,0,0.5)"
               ]
             }]
+          },
+          options: {
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         });
 
@@ -321,6 +410,15 @@
                 "rgba(0,255,0,0.5)"
               ]
             }]
+          },
+          options: {
+            scales: {
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
           }
         });
 
